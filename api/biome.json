@@ -1,0 +1,76 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.7.0/schema.json",
+
+
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "quoteStyle": "single",
+    "semicolons": "asNeeded",
+    "trailingComma": "es5",
+    "bracketSpacing": true,
+    "arrowParens": "always"
+  },
+
+
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "nursery": true,
+      "style": {
+        "useSingleQuote": "error",
+        "useSemicolons": "error",
+        "noUnusedVariables": "error",
+        "noVar": "error",
+        "useConst": "error"
+      },
+      "suspicious": {
+        "noConsole": "warn",
+        "noDebugger": "error"
+      },
+      "complexity": {
+        "noUselessCatch": "error"
+      }
+    }
+  },
+
+
+  "files": {
+    "ignore": [
+      "node_modules",
+      "dist",
+      "build",
+      "coverage"
+    ]
+  },
+
+
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingComma": "es5"
+    },
+    "linter": {
+      "enabled": true
+    }
+  },
+  "typescript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingComma": "es5"
+    },
+    "linter": {
+      "enabled": true
+    }
+  },
+
+
+  "log": {
+    "level": "info"
+  }
+}
