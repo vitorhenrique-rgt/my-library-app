@@ -1,21 +1,23 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 const bookSchema = new mongoose.Schema({
-  title: {
+  googleBookId: {
     type: String,
     required: true,
+    unique: true, // Garante que não haja livros duplicados por ID do Google
   },
-  author: {
+  status: {
     type: String,
+    enum: ['read', 'reading', 'want-to-read'], // Restringe o valor do campo a estas opções
     required: true,
   },
-  publisher: {
-    type: String,
-  },
-  description: {
-    type: String,
-  },
-})
+  // Futuramente, adicionaremos o ID do usuário aqui
+  // user: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'User',
+  //   required: true,
+  // },
+}, { timestamps: true }); // Adiciona campos `createdAt` e `updatedAt` automaticamente
 
-const Book = mongoose.model('Book', bookSchema)
+const Book = mongoose.model('Book', bookSchema);
 
-module.exports = Book
+module.exports = Book;
