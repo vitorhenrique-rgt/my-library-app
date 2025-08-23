@@ -1,0 +1,30 @@
+@baseUrl = http://localhost:3000/api
+
+### Lista livros
+GET {{baseUrl}}/books
+Content-Type: application/json
+
+### Busca livro por ID
+GET {{baseUrl}}/books/68a7d92d18c0de5a78864942
+Content-Type: application/json
+
+### Adicionar um livro
+POST {{baseUrl}}/books
+Content-Type: application/json
+
+{
+  "googleBookId": "g0s_T_9HlOKC",
+  "status": "reading"
+}
+
+### Buscar um livro pelo ID
+PUT {{baseUrl}}/books/68a9c3d7381dc55a07ca5617
+Content-Type: application/json
+
+{
+  "status": "read"
+}
+
+### Deletar livro
+DELETE {{baseUrl}}/books/68a9c576381dc55a07ca5619
+Content-Type: application/json
