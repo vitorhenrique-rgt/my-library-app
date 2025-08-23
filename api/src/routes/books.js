@@ -1,7 +1,41 @@
 const express = require('express')
-const Book = require('../models/Book') // Importa o Modelo Book
+const axios = require('axios')
+const Book = require('../models/Book')
 
 const router = express.Router()
+
+// Search book on Google Book API
+router.get('/search', async (req, res) => {
+  try {
+    // Captura o termo de busca da query da URL, ex: /search?q=clean+code
+    const { q } = req.query
+
+    if (!q) {
+      return res
+        .status(400)
+        .json({ error: 'Termo de busca (q) é obrigatório.' })
+    }
+
+    const API_KEY = process.env.GOOGLE_BOOKS_API_KEY
+    const GOOGLE_BOOKS_URL = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+      q
+    )}&key=${API_KEY}`
+
+    const response = await axios.get(GOOGLE_BOOKS_URL)
+    const books = response.data.items.map((item) => ({
+      googleBookId: item.id,
+      title: item.volumeInfo.title,
+      authors: item.volumeInfo.authors,
+      description: item.volumeInfo.description,
+      imageLink: item.volumeInfo.imageLinks?.thumbnail,
+    }))
+
+    res.status(200).json(books)
+  } catch (err) {
+    console.error('Erro ao buscar na API do Google Books:', err)
+    res.status(500).json({ error: 'Erro ao buscar livros.' })
+  }
+})
 
 //List books
 router.get('/', async (req, res) => {
@@ -14,7 +48,6 @@ router.get('/', async (req, res) => {
 })
 
 //Search book for ID
-// Rota GET para buscar um livro pelo ID
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params

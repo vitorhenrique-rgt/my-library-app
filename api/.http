@@ -28,3 +28,7 @@ Content-Type: application/json
 ### Deletar livro
 DELETE {{baseUrl}}/books/68a9c576381dc55a07ca5619
 Content-Type: application/json
+
+### Pesquisa livro na API do Google Livros
+GET  {{baseUrl}}/books/search?q=clean code
+Content-Type: application/json
