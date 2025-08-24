@@ -1,34 +1,46 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import axios from 'axios'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-
+  // Estado para armazenar o termo de busca do usuário
+  const [searchTerm, setSearchTerm] = useState('')
+  // Estado para armazenar a lista de livros retornada
+  const [books, setBooks] = useState([])
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/books/search?q=${searchTerm}`
+      )
+      setBooks(response.data)
+    } catch (error) {
+      console.error('Erro ao buscar livros:', error)
+    }
+  }
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="App">
+      <h1>My Library App</h1>
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Buscar livros..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <button onClick={handleSearch}>Buscar</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+      <div className="books-list">
+        {books.map((book) => (
+          <div key={book.googleBookId} className="book-card">
+            <h2>{book.title}</h2>
+            <p>
+              <strong>Autor(es):</strong> {book.authors?.join(', ')}
+            </p>
+            <p>{book.description}</p>
+          </div>
+        ))}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   )
 }
 
