@@ -1,29 +1,83 @@
-import js from '@eslint/js'
+import eslintPluginImport from 'eslint-plugin-import'
+import eslintPluginReact from 'eslint-plugin-react'
+import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
 
-export default defineConfig([
-  globalIgnores(['dist']),
+export default [
   {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
+    ignores: ['node_modules', 'dist', 'build'],
+
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.browser, // ambiente de browser para React
+      },
       parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
       },
     },
+
+    plugins: {
+      import: eslintPluginImport,
+      react: eslintPluginReact,
+      'react-hooks': eslintPluginReactHooks,
+    },
+
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Regras gerais
+      'no-unused-vars': 'warn',
+      'no-console': 'off',
+
+      // Importações
+      'import/order': [
+        'error',
+        {
+          groups: [
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
+          ],
+          'newlines-between': 'always',
+        },
+      ],
+      'import/no-duplicates': 'error',
+
+      // React
+      'react/jsx-uses-react': 'off', // não é mais necessário no React 17+
+      'react/react-in-jsx-scope': 'off', // idem acima
+      'react/jsx-uses-vars': 'error',
+      'react/jsx-no-undef': 'error',
+
+      // Hooks
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+
+      // Estilo (Prettier já cuida do resto)
+      semi: 'off',
+      quotes: ['error', 'single'],
     },
   },
-])
+
+  // Se tiver TypeScript
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: '@typescript-eslint/parser',
+      parserOptions: {
+        project: './tsconfig.json',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['warn'],
+    },
+  },
+]
