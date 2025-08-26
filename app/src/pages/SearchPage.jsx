@@ -1,7 +1,6 @@
-// src/pages/SearchPage.jsx
-
 import axios from 'axios';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,7 +71,9 @@ function SearchPage() {
                 )}
               </div>
               <div className="mt-6 flex flex-col flex-grow text-center">
+              <Link to={`/book/${book.googleBookId}`} className="hover:underline">
                 <h2 className="text-lg font-bold text-blue-400">{book.title}</h2>
+              </Link>
                 <p className="text-sm text-gray-400 mt-2">
                   <span className="font-semibold">Autor(es):</span> {book.authors?.join(', ')}
                 </p>

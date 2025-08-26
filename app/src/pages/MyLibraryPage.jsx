@@ -92,7 +92,9 @@ function MyLibraryPage() {
                   )}
                 </div>
                 <div className="mt-6 flex flex-col flex-grow text-center">
-                  <h2 className="text-lg font-bold text-blue-400">{book.title}</h2>
+                  <Link to={`/book/${book.googleBookId}`} className="hover:underline">
+  <h2 className="text-lg font-bold text-blue-400">{book.title}</h2>
+</Link>
                   <p className="text-sm text-gray-400 mt-2">
                     <span className="font-semibold">Status:</span> {getStatusText(book.status)}
                   </p>
