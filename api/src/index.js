@@ -4,6 +4,7 @@ const express = require('express')
 const cors = require('cors')
 const connectDB = require('./config/database')
 const booksRouter = require('./routes/books')
+const authRouter = require('./routes/auth')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -12,6 +13,7 @@ app.use(express.json())
 app.use(cors())
 
 app.use('/api/books', booksRouter)
+app.use('/api/auth', authRouter)
 
 const startServer = async () => {
   try {
