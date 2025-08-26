@@ -32,3 +32,21 @@ Content-Type: application/json
 ### Pesquisa livro na API do Google Livros
 GET  {{baseUrl}}/books/search?q=clean code
 Content-Type: application/json
+
+### Registrar novo usuário
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "Vitor Henrique",
+  "password": "Mei@Suj@"
+}
+
+### Fazer login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "Vitor Henrique",
+  "password": "Mei@Suj@"
+}
