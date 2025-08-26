@@ -40,10 +40,48 @@ router.get('/search', async (req, res) => {
 //List books
 router.get('/', async (req, res) => {
   try {
-    const books = await Book.find({}) // Encontra todos os documentos na coleção 'books'
-    res.status(200).json(books) // Retorna a lista de livros com status 200 OK
+    const books = await Book.find()
+
+    // Mapear cada livro para buscar informações da API do Google Books
+    const booksWithDetails = await Promise.all(
+      books.map(async (book) => {
+        const API_KEY = process.env.GOOGLE_BOOKS_API_KEY
+        const GOOGLE_BOOKS_URL = `https://www.googleapis.com/books/v1/volumes/${book.googleBookId}?key=${API_KEY}`
+
+        try {
+          const response = await axios.get(GOOGLE_BOOKS_URL)
+          const bookDetails = response.data.volumeInfo
+
+          return {
+            _id: book._id,
+            googleBookId: book.googleBookId,
+            status: book.status,
+            title: bookDetails.title,
+            authors: bookDetails.authors,
+            imageLink: bookDetails.imageLinks?.thumbnail,
+            // Você pode adicionar outras informações aqui, como descrição
+          }
+        } catch (err) {
+          console.error(
+            `Erro ao buscar detalhes do livro ${book.googleBookId}:`,
+            err
+          )
+          // Retorna um objeto com informações limitadas em caso de erro
+          return {
+            _id: book._id,
+            googleBookId: book.googleBookId,
+            status: book.status,
+            title: 'Título não encontrado',
+            authors: ['Autor(es) não encontrado'],
+            imageLink: null,
+          }
+        }
+      })
+    )
+
+    res.status(200).json(booksWithDetails)
   } catch (err) {
-    res.status(500).json({ error: 'Erro ao buscar os livros.' }) // Erro do servidor
+    res.status(500).json({ error: err.message })
   }
 })
 
