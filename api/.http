@@ -3,6 +3,7 @@
 ### Lista livros
 GET {{baseUrl}}/books
 Content-Type: application/json
+x-auth-token:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YWU2NTAwODdmOTMwMWE1MTI1ZDBjNyIsImlhdCI6MTc1NjI2MTQ1OSwiZXhwIjoxNzU2MjY1MDU5fQ.IorE57sCaaicrVDWzkgd2hi9TQe2T__QZM5pZL3t5pE
 
 ### Busca livro por ID
 GET {{baseUrl}}/books/68a7d92d18c0de5a78864942
@@ -11,6 +12,7 @@ Content-Type: application/json
 ### Adicionar um livro
 POST {{baseUrl}}/books
 Content-Type: application/json
+x-auth-token:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YWU2NTAwODdmOTMwMWE1MTI1ZDBjNyIsImlhdCI6MTc1NjI2MTQ1OSwiZXhwIjoxNzU2MjY1MDU5fQ.IorE57sCaaicrVDWzkgd2hi9TQe2T__QZM5pZL3t5pE
 
 {
   "googleBookId": "g0s_T_9HlOKC",
@@ -18,16 +20,18 @@ Content-Type: application/json
 }
 
 ### Buscar um livro pelo ID
-PUT {{baseUrl}}/books/68a9c3d7381dc55a07ca5617
+PUT {{baseUrl}}/books/68ae73632c1e1868ea801394
 Content-Type: application/json
+x-auth-token:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YWU2NTAwODdmOTMwMWE1MTI1ZDBjNyIsImlhdCI6MTc1NjI2MTQ1OSwiZXhwIjoxNzU2MjY1MDU5fQ.IorE57sCaaicrVDWzkgd2hi9TQe2T__QZM5pZL3t5pE
 
 {
   "status": "read"
 }
 
 ### Deletar livro
-DELETE {{baseUrl}}/books/68a9c576381dc55a07ca5619
+DELETE {{baseUrl}}/books/68ae73632c1e1868ea801394
 Content-Type: application/json
+x-auth-token:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YWU2NTAwODdmOTMwMWE1MTI1ZDBjNyIsImlhdCI6MTc1NjI2MTQ1OSwiZXhwIjoxNzU2MjY1MDU5fQ.IorE57sCaaicrVDWzkgd2hi9TQe2T__QZM5pZL3t5pE
 
 ### Pesquisa livro na API do Google Livros
 GET  {{baseUrl}}/books/search?q=clean code
@@ -38,8 +42,8 @@ POST http://localhost:3000/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "Vitor Henrique",
-  "password": "Mei@Suj@"
+  "username": "Vitor",
+  "password": "Mei@Limp@"
 }
 
 ### Fazer login
@@ -47,6 +51,6 @@ POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "Vitor Henrique",
-  "password": "Mei@Suj@"
+  "username": "Vitor",
+  "password": "Mei@Limp@"
 }
