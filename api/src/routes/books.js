@@ -1,6 +1,7 @@
 const express = require('express')
 const axios = require('axios')
 const Book = require('../models/Book')
+const authMiddleware = require('../middleware/authMiddleware')
 
 const router = express.Router()
 
@@ -38,9 +39,10 @@ router.get('/search', async (req, res) => {
 })
 
 //List books
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
+  // Agora, a busca de livros será apenas para o usuário logado
   try {
-    const books = await Book.find()
+    const books = await Book.find({ user: req.user })
 
     // Mapear cada livro para buscar informações da API do Google Books
     const booksWithDetails = await Promise.all(
@@ -102,25 +104,19 @@ router.get('/:id', async (req, res) => {
 })
 
 // Add book
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const { googleBookId, status } = req.body
-
-    const newBook = new Book({
-      googleBookId,
-      status,
-    })
-
-    const savedBook = await newBook.save()
-
-    res.status(201).json(savedBook)
+    const book = new Book({ googleBookId, status, user: req.user })
+    await book.save()
+    res.status(201).json(book)
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    res.status(500).json({ error: err.message })
   }
 })
 
 // Update book
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params // Captura o ID da URL
     const { status } = req.body // Captura o novo status do corpo da requisição
@@ -146,7 +142,7 @@ router.put('/:id', async (req, res) => {
 })
 
 // Delete book
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params
 
