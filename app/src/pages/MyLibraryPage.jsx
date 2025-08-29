@@ -1,74 +1,87 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import axios from 'axios'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 function MyLibraryPage() {
-  const [myBooks, setMyBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [myBooks, setMyBooks] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const fetchMyBooks = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/books');
-      setMyBooks(response.data);
-      setLoading(false);
+      const response = await axios.get('http://localhost:3000/api/books')
+      setMyBooks(response.data)
+      setLoading(false)
     } catch (error) {
-      console.error('Erro ao buscar a sua biblioteca:', error);
-      setLoading(false);
+      console.error('Erro ao buscar a sua biblioteca:', error)
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchMyBooks();
-  }, []);
+    fetchMyBooks()
+  }, [])
 
   const handleUpdateStatus = async (bookId, newStatus) => {
     try {
-      await axios.put(`http://localhost:3000/api/books/${bookId}`, { status: newStatus });
+      await axios.put(`http://localhost:3000/api/books/${bookId}`, {
+        status: newStatus,
+      })
       // Atualiza a lista localmente para refletir a mudança
-      setMyBooks(prevBooks =>
-        prevBooks.map(book =>
+      setMyBooks((prevBooks) =>
+        prevBooks.map((book) =>
           book._id === bookId ? { ...book, status: newStatus } : book
         )
-      );
+      )
     } catch (error) {
-      console.error('Erro ao atualizar o status:', error);
+      console.error('Erro ao atualizar o status:', error)
     }
-  };
+  }
 
   const handleDeleteBook = async (bookId) => {
     if (window.confirm('Tem certeza que deseja remover este livro?')) {
       try {
-        await axios.delete(`http://localhost:3000/api/books/${bookId}`);
+        await axios.delete(`http://localhost:3000/api/books/${bookId}`)
         // Remove o livro da lista localmente
-        setMyBooks(prevBooks => prevBooks.filter(book => book._id !== bookId));
+        setMyBooks((prevBooks) =>
+          prevBooks.filter((book) => book._id !== bookId)
+        )
       } catch (error) {
-      console.error('Erro ao remover o livro:', error);
+        console.error('Erro ao remover o livro:', error)
       }
     }
-  };
+  }
 
   const getStatusText = (status) => {
     switch (status) {
       case 'want-to-read':
-        return 'Quero Ler';
+        return 'Quero Ler'
       case 'reading':
-        return 'Lendo';
+        return 'Lendo'
       case 'read':
-        return 'Lido';
+        return 'Lido'
       default:
-        return status;
+        return status
     }
-  };
+  }
 
   if (loading) {
-    return <div className="text-center mt-10 text-white">Carregando sua biblioteca...</div>;
+    return (
+      <div className="text-center mt-10 text-white">
+        Carregando sua biblioteca...
+      </div>
+    )
   }
 
   return (
     <div className="bg-gray-900 text-gray-200 min-h-screen p-8 font-sans">
       <header className="flex justify-between items-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">Minha Biblioteca</h1>
-        <Link to="/" className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+          Minha Biblioteca
+        </h1>
+        <Link
+          to="/"
+          className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+        >
           Voltar para a Busca
         </Link>
       </header>
@@ -80,7 +93,10 @@ function MyLibraryPage() {
           </p>
         ) : (
           myBooks.map((book) => (
-            <div key={book._id} className="bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-transform transform hover:scale-105">
+            <div
+              key={book._id}
+              className="bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-transform transform hover:scale-105"
+            >
               <div className="p-6 flex flex-col h-full">
                 <div className="flex-shrink-0 flex justify-center items-start">
                   {book.imageLink && (
@@ -92,11 +108,17 @@ function MyLibraryPage() {
                   )}
                 </div>
                 <div className="mt-6 flex flex-col flex-grow text-center">
-                  <Link to={`/book/${book.googleBookId}`} className="hover:underline">
-  <h2 className="text-lg font-bold text-blue-400">{book.title}</h2>
-</Link>
+                  <Link
+                    to={`/book/${book.googleBookId}`}
+                    className="hover:underline"
+                  >
+                    <h2 className="text-lg font-bold text-blue-400">
+                      {book.title}
+                    </h2>
+                  </Link>
                   <p className="text-sm text-gray-400 mt-2">
-                    <span className="font-semibold">Status:</span> {getStatusText(book.status)}
+                    <span className="font-semibold">Status:</span>{' '}
+                    {getStatusText(book.status)}
                   </p>
                 </div>
               </div>
@@ -125,7 +147,7 @@ function MyLibraryPage() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
-export default MyLibraryPage;
+export default MyLibraryPage

@@ -1,45 +1,62 @@
-import axios from 'axios';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import axios from 'axios'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 function SearchPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [books, setBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('')
+  const [books, setBooks] = useState([])
 
   const truncateText = (text, maxLength) => {
-    if (!text) return '';
+    if (!text) return ''
     if (text.length <= maxLength) {
-      return text;
+      return text
     }
-    return `${text.substring(0, maxLength)}...`;
-  };
+    return `${text.substring(0, maxLength)}...`
+  }
 
   const handleSearch = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/books/search?q=${searchTerm}`);
-      setBooks(response.data);
+      const response = await axios.get(
+        `http://localhost:3000/api/books/search?q=${searchTerm}`
+      )
+      setBooks(response.data)
     } catch (error) {
-      console.error('Erro ao buscar livros:', error);
+      console.error('Erro ao buscar livros:', error)
     }
-  };
+  }
 
   const handleAddBook = async (book) => {
     try {
       const response = await axios.post('http://localhost:3000/api/books', {
         googleBookId: book.googleBookId,
         status: 'want-to-read',
-      });
-      console.log('Livro adicionado com sucesso:', response.data);
-      alert('Livro adicionado à sua biblioteca!');
+      })
+      console.log('Livro adicionado com sucesso:', response.data)
+      alert('Livro adicionado à sua biblioteca!')
     } catch (error) {
-      console.error('Erro ao adicionar livro:', error.response.data);
-      alert('Erro ao adicionar livro. Ele já pode estar na sua biblioteca.');
+      console.error('Erro ao adicionar livro:', error.response.data)
+      alert('Erro ao adicionar livro. Ele já pode estar na sua biblioteca.')
     }
-  };
+  }
 
   return (
     <div className="bg-gray-900 text-gray-200 min-h-screen p-8 font-sans">
-      <h1 className="text-4xl md:text-5xl font-extrabold text-white text-center tracking-tight mb-8">My Library App</h1>
+      <header className="flex justify-between items-center mb-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+          My Library App
+        </h1>
+        <nav className="flex items-center gap-4">
+          <Link to="/my-library" className="text-white hover:underline">
+            Minha Biblioteca
+          </Link>
+          <Link
+            to="/auth"
+            className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Login
+          </Link>
+        </nav>
+      </header>
 
       <div className="flex justify-center items-center gap-4 mb-12">
         <input
@@ -59,7 +76,10 @@ function SearchPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {books.map((book) => (
-          <div key={book.googleBookId} className="bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-transform transform hover:scale-105">
+          <div
+            key={book.googleBookId}
+            className="bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-transform transform hover:scale-105"
+          >
             <div className="p-6 flex flex-col h-full">
               <div className="flex-shrink-0 flex justify-center items-start">
                 {book.imageLink && (
@@ -71,11 +91,17 @@ function SearchPage() {
                 )}
               </div>
               <div className="mt-6 flex flex-col flex-grow text-center">
-              <Link to={`/book/${book.googleBookId}`} className="hover:underline">
-                <h2 className="text-lg font-bold text-blue-400">{book.title}</h2>
-              </Link>
+                <Link
+                  to={`/book/${book.googleBookId}`}
+                  className="hover:underline"
+                >
+                  <h2 className="text-lg font-bold text-blue-400">
+                    {book.title}
+                  </h2>
+                </Link>
                 <p className="text-sm text-gray-400 mt-2">
-                  <span className="font-semibold">Autor(es):</span> {book.authors?.join(', ')}
+                  <span className="font-semibold">Autor(es):</span>{' '}
+                  {book.authors?.join(', ')}
                 </p>
                 <p className="text-sm text-gray-500 mt-2 flex-grow">
                   {truncateText(book.description, 150)}
@@ -94,7 +120,7 @@ function SearchPage() {
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-export default SearchPage;
+export default SearchPage

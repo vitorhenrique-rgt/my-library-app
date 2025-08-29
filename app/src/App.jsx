@@ -1,16 +1,18 @@
-import { Routes, Route } from 'react-router-dom';
-import SearchPage from './pages/SearchPage';
-import MyLibraryPage from './pages/MyLibraryPage';
-import BookDetailsPage from './pages/BookDetailsPage'; // Importa a nova página
+import { Route, Routes } from 'react-router-dom'
+import AuthPage from './pages/AuthPage'
+import BookDetailsPage from './pages/BookDetailsPage'
+import MyLibraryPage from './pages/MyLibraryPage'
+import SearchPage from './pages/SearchPage'
 
 function App() {
   return (
     <Routes>
+      <Route path="/auth" element={<AuthPage />} />
       <Route path="/" element={<SearchPage />} />
       <Route path="/my-library" element={<MyLibraryPage />} />
-      <Route path="/book/:googleBookId" element={<BookDetailsPage />} /> // Nova rota para a página de detalhes
+      <Route path="/book/:googleBookId" element={<BookDetailsPage />} />
     </Routes>
-  );
+  )
 }
 
-export default App;
+export default App
