@@ -1,8 +1,10 @@
 import axios from 'axios'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '../context/AuthContext'
 
 function AuthPage() {
+  const { login } = useContext(AuthContext)
   const [isLogin, setIsLogin] = useState(true)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -20,13 +22,11 @@ function AuthPage() {
       const response = await axios.post(url, { username, password })
 
       if (isLogin) {
-        // Guarda o token e o ID do usuário no armazenamento local
-        localStorage.setItem('token', response.data.token)
-        localStorage.setItem('userId', response.data.userId)
-        navigate('/') // Redireciona para a página de busca
+        login(response.data.token, response.data.userId)
+        navigate('/')
       } else {
         alert('Usuário registrado com sucesso! Agora faça o login.')
-        setIsLogin(true) // Alterna para a tela de login
+        setIsLogin(true)
       }
     } catch (err) {
       setError(err.response?.data.error || 'Erro de autenticação')
