@@ -1,1 +1,10 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  /* Define as cores de fundo e texto padrão que o Tailwind vai pegar do tema */
+  @apply bg-backgroundLight text-textLight dark:bg-backgroundDark dark:text-textDark font-sans;
+  margin: 0;
+  min-height: 100vh;
+}
