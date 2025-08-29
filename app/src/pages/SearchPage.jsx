@@ -1,10 +1,12 @@
 import axios from 'axios'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AuthContext } from '../context/AuthContext'
 
 function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [books, setBooks] = useState([])
+  const { isAuthenticated, logout, token } = useContext(AuthContext)
 
   const truncateText = (text, maxLength) => {
     if (!text) return ''
@@ -26,18 +28,31 @@ function SearchPage() {
   }
 
   const handleAddBook = async (book) => {
-    try {
-      const response = await axios.post('http://localhost:3000/api/books', {
+  if (!isAuthenticated) {
+    alert('Por favor, faça login para adicionar livros à sua biblioteca.');
+    return;
+  }
+
+  try {
+    const response = await axios.post(
+      'http://localhost:3000/api/books',
+      {
         googleBookId: book.googleBookId,
         status: 'want-to-read',
-      })
-      console.log('Livro adicionado com sucesso:', response.data)
-      alert('Livro adicionado à sua biblioteca!')
-    } catch (error) {
-      console.error('Erro ao adicionar livro:', error.response.data)
-      alert('Erro ao adicionar livro. Ele já pode estar na sua biblioteca.')
-    }
+      },
+      {
+        headers: {
+          'x-auth-token': token,
+        },
+      }
+    );
+    console.log('Livro adicionado com sucesso:', response.data);
+    alert('Livro adicionado à sua biblioteca!');
+  } catch (error) {
+    console.error('Erro ao adicionar livro:', error.response?.data?.error || error.message);
+    alert('Erro ao adicionar livro. Ele já pode estar na sua biblioteca.');
   }
+};
 
   return (
     <div className="bg-gray-900 text-gray-200 min-h-screen p-8 font-sans">
@@ -49,12 +64,21 @@ function SearchPage() {
           <Link to="/my-library" className="text-white hover:underline">
             Minha Biblioteca
           </Link>
-          <Link
-            to="/auth"
-            className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Login
-          </Link>
+          {isAuthenticated ? (
+            <button
+              onClick={logout}
+              className="bg-red-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Login
+            </Link>
+          )}
         </nav>
       </header>
 

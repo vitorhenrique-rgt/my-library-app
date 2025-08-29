@@ -1,25 +1,37 @@
 import axios from 'axios'
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useContext, useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { AuthContext } from '../context/AuthContext'
 
 function MyLibraryPage() {
   const [myBooks, setMyBooks] = useState([])
   const [loading, setLoading] = useState(true)
-
-  const fetchMyBooks = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/books')
-      setMyBooks(response.data)
-      setLoading(false)
-    } catch (error) {
-      console.error('Erro ao buscar a sua biblioteca:', error)
-      setLoading(false)
-    }
-  }
+  const { isAuthenticated, token } = useContext(AuthContext) 
+  const navigate = useNavigate()
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/auth')
+      return
+    }
+
+    const fetchMyBooks = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/books', {
+          headers: {
+            'x-auth-token': token,
+          },
+        })
+        setMyBooks(response.data)
+        setLoading(false)
+      } catch (error) {
+        console.error('Erro ao buscar a sua biblioteca:', error)
+        setLoading(false)
+      }
+    }
+
     fetchMyBooks()
-  }, [])
+  }, [isAuthenticated, navigate, token])
 
   const handleUpdateStatus = async (bookId, newStatus) => {
     try {
