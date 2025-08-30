@@ -1,7 +1,7 @@
-import axios from 'axios'
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
+import api from '../services/api'
 
 function BookDetailsPage() {
   const { googleBookId } = useParams()
@@ -17,9 +17,7 @@ function BookDetailsPage() {
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
-        const googleResponse = await axios.get(
-          `https://www.googleapis.com/books/v1/volumes/${googleBookId}?key=${GOOGLE_BOOKS_API_KEY}`
-        )
+        const googleResponse = await api.get(`/google-books/${googleBookId}`)
         const bookData = googleResponse.data
         const fetchedBook = {
           googleBookId: bookData.id,
@@ -31,11 +29,8 @@ function BookDetailsPage() {
         setBook(fetchedBook)
 
         if (isAuthenticated) {
-          const myLibraryResponse = await axios.get(
-            `http://localhost:3000/api/books/search?googleBookId=${googleBookId}`,
-            {
-              headers: { 'x-auth-token': token },
-            }
+          const myLibraryResponse = await api.get(
+            `http://localhost:3000/api/books/search?googleBookId=${googleBookId}`
           )
           if (myLibraryResponse.data.length > 0) {
             setUserBook(myLibraryResponse.data[0])
@@ -54,25 +49,15 @@ function BookDetailsPage() {
   const handleUpdateStatus = async (newStatus) => {
     try {
       if (!userBook) {
-        const response = await axios.post(
-          'http://localhost:3000/api/books',
-          {
-            googleBookId: book.googleBookId,
-            status: newStatus,
-          },
-          {
-            headers: { 'x-auth-token': token },
-          }
-        )
+        const response = await api.post('http://localhost:3000/api/books', {
+          googleBookId: book.googleBookId,
+          status: newStatus,
+        })
         setUserBook(response.data)
       } else {
-        await axios.put(
-          `http://localhost:3000/api/books/${userBook._id}`,
-          { status: newStatus },
-          {
-            headers: { 'x-auth-token': token },
-          }
-        )
+        await api.put(`http://localhost:3000/api/books/${userBook._id}`, {
+          status: newStatus,
+        })
         setUserBook((prevUserBook) => ({ ...prevUserBook, status: newStatus }))
       }
     } catch (error) {
@@ -88,9 +73,7 @@ function BookDetailsPage() {
       )
     ) {
       try {
-        await axios.delete(`http://localhost:3000/api/books/${userBook._id}`, {
-          headers: { 'x-auth-token': token },
-        })
+        await api.delete(`http://localhost:3000/api/books/${userBook._id}`)
         setUserBook(null)
         alert('Livro removido com sucesso!')
       } catch (error) {

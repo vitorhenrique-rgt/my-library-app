@@ -25,9 +25,9 @@ function SearchPage() {
 
     setLoading(true)
     try {
-      const response = await api.get(
-        `https://www.googleapis.com/books/v1/volumes?q=${searchTerm}&key=${GOOGLE_BOOKS_API_KEY}`
-      )
+      // Use o 'api' que configuramos para o backend
+      const response = await api.get(`/google-books?q=${searchTerm}`)
+      // A resposta virá diretamente do Google, mas através do nosso backend
       const fetchedBooks = response.data.items.map((item) => ({
         googleBookId: item.id,
         title: item.volumeInfo.title,
