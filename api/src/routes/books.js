@@ -38,6 +38,18 @@ router.get('/search', async (req, res) => {
   }
 })
 
+
+router.get('/search', authMiddleware, async (req, res) => {
+  const { googleBookId } = req.query;
+  try {
+    const books = await Book.find({ user: req.user, googleBookId });
+    res.json(books);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 //List books
 router.get('/', authMiddleware, async (req, res) => {
   // Agora, a busca de livros será apenas para o usuário logado
