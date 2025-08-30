@@ -1,7 +1,7 @@
-import axios from 'axios'
 import { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
+import api from '../services/api'
 
 function AuthPage() {
   const { login } = useContext(AuthContext)
@@ -19,7 +19,7 @@ function AuthPage() {
     const url = `http://localhost:3000/api/auth/${endpoint}`
 
     try {
-      const response = await axios.post(url, { username, password })
+      const response = await api.post(url, { username, password })
 
       if (isLogin) {
         login(response.data.token, response.data.userId)
