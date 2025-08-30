@@ -17,7 +17,10 @@ function BookDetailsPage() {
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
-        const googleResponse = await api.get(`/google-books/${googleBookId}`)
+        // Aponte para a nova rota de proxy de detalhes
+        const googleResponse = await api.get(
+          `/google-books/details?id=${googleBookId}`
+        )
         const bookData = googleResponse.data
         const fetchedBook = {
           googleBookId: bookData.id,
@@ -42,10 +45,10 @@ function BookDetailsPage() {
         setLoading(false)
       }
     }
-
     fetchBookDetails()
   }, [googleBookId, isAuthenticated, token])
 
+  
   const handleUpdateStatus = async (newStatus) => {
     try {
       if (!userBook) {

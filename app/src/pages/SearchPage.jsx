@@ -25,9 +25,8 @@ function SearchPage() {
 
     setLoading(true)
     try {
-      // Use o 'api' que configuramos para o backend
-      const response = await api.get(`/google-books?q=${searchTerm}`)
-      // A resposta virá diretamente do Google, mas através do nosso backend
+      // Aponte para a nova rota de proxy de busca
+      const response = await api.get(`/google-books/search?q=${searchTerm}`)
       const fetchedBooks = response.data.items.map((item) => ({
         googleBookId: item.id,
         title: item.volumeInfo.title,
