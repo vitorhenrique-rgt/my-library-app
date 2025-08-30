@@ -1,148 +1,151 @@
-import axios from 'axios'
 import { useContext, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
+import api from '../services/api'
 
 function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [books, setBooks] = useState([])
-  const { isAuthenticated, logout, token } = useContext(AuthContext)
+  const [loading, setLoading] = useState(false)
+  const { isAuthenticated, token } = useContext(AuthContext)
 
+  const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY
+
+  // A função truncateText é útil se line-clamp não estiver funcionando,
+  // mas o ideal é usar o plugin do Tailwind. Vamos mantê-la como fallback.
   const truncateText = (text, maxLength) => {
-    if (!text) return ''
-    if (text.length <= maxLength) {
-      return text
-    }
-    return `${text.substring(0, maxLength)}...`
+    if (!text) return 'Descrição não disponível.'
+    if (text.length <= maxLength) return text
+    return text.substr(0, maxLength) + '...'
   }
 
-  const handleSearch = async () => {
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    if (!searchTerm) return
+
+    setLoading(true)
     try {
-      const response = await axios.get(
-        `http://localhost:3000/api/books/search?q=${searchTerm}`
+      const response = await api.get(
+        `https://www.googleapis.com/books/v1/volumes?q=${searchTerm}&key=${GOOGLE_BOOKS_API_KEY}`
       )
-      setBooks(response.data)
+      const fetchedBooks = response.data.items.map((item) => ({
+        googleBookId: item.id,
+        title: item.volumeInfo.title,
+        authors: item.volumeInfo.authors,
+        imageLink: item.volumeInfo.imageLinks?.thumbnail || '',
+        description: item.volumeInfo.description,
+      }))
+      setBooks(fetchedBooks)
     } catch (error) {
       console.error('Erro ao buscar livros:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleAddBook = async (book) => {
-  if (!isAuthenticated) {
-    alert('Por favor, faça login para adicionar livros à sua biblioteca.');
-    return;
-  }
+  const handleAddBook = async (book, event) => {
+    event.stopPropagation()
+    if (!isAuthenticated) {
+      alert('Por favor, faça login para adicionar livros à sua biblioteca.')
+      return
+    }
 
-  try {
-    const response = await axios.post(
-      'http://localhost:3000/api/books',
-      {
+    try {
+      const response = await api.post('http://localhost:3000/api/books', {
         googleBookId: book.googleBookId,
         status: 'want-to-read',
-      },
-      {
-        headers: {
-          'x-auth-token': token,
-        },
-      }
-    );
-    console.log('Livro adicionado com sucesso:', response.data);
-    alert('Livro adicionado à sua biblioteca!');
-  } catch (error) {
-    console.error('Erro ao adicionar livro:', error.response?.data?.error || error.message);
-    alert('Erro ao adicionar livro. Ele já pode estar na sua biblioteca.');
+      })
+      console.log('Livro adicionado com sucesso:', response.data)
+      alert('Livro adicionado à sua biblioteca!')
+    } catch (error) {
+      console.error(
+        'Erro ao adicionar livro:',
+        error.response?.data?.error || error.message
+      )
+      alert('Erro ao adicionar livro. Ele já pode estar na sua biblioteca.')
+    }
   }
-};
 
   return (
-    <div className="bg-gray-900 text-gray-200 min-h-screen p-8 font-sans">
-      <header className="flex justify-between items-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+    <div className="container mx-auto px-4 py-8">
+      <header className="text-center mb-10">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-textLight dark:text-textDark tracking-tight mb-4">
           My Library App
         </h1>
-        <nav className="flex items-center gap-4">
-          <Link to="/my-library" className="text-white hover:underline">
-            Minha Biblioteca
-          </Link>
-          {isAuthenticated ? (
-            <button
-              onClick={logout}
-              className="bg-red-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
-            >
-              Logout
-            </button>
-          ) : (
-            <Link
-              to="/auth"
-              className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Login
-            </Link>
-          )}
-        </nav>
+        <form
+          onSubmit={handleSearch}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar livros..."
+            className="w-full sm:w-80 px-4 py-2 rounded-full bg-cardLight dark:bg-cardDark text-textLight dark:text-textDark border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+          />
+          <button
+            type="submit"
+            className="w-full sm:w-auto bg-primary text-white font-semibold py-2 px-6 rounded-full hover:bg-primaryHover transition-colors duration-200"
+          >
+            Buscar
+          </button>
+        </form>
       </header>
 
-      <div className="flex justify-center items-center gap-4 mb-12">
-        <input
-          type="text"
-          placeholder="Buscar livros..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-lg p-3 border border-gray-700 bg-gray-800 text-gray-100 placeholder-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-        />
-        <button
-          onClick={handleSearch}
-          className="bg-blue-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-        >
-          Buscar
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {books.map((book) => (
-          <div
-            key={book.googleBookId}
-            className="bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col transition-transform transform hover:scale-105"
-          >
-            <div className="p-6 flex flex-col h-full">
-              <div className="flex-shrink-0 flex justify-center items-start">
-                {book.imageLink && (
-                  <img
-                    src={book.imageLink}
-                    alt={`Capa do livro ${book.title}`}
-                    className="max-w-[120px] h-[180px] object-cover rounded-md shadow-lg"
-                  />
-                )}
-              </div>
-              <div className="mt-6 flex flex-col flex-grow text-center">
-                <Link
-                  to={`/book/${book.googleBookId}`}
-                  className="hover:underline"
-                >
-                  <h2 className="text-lg font-bold text-blue-400">
+      {loading ? (
+        <div className="text-center mt-10 text-lg text-textLight dark:text-textDark">
+          <p>Buscando livros...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {books.map((book) => (
+            <div
+              key={book.googleBookId}
+              className="bg-cardLight dark:bg-cardDark rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col"
+            >
+              <Link
+                to={`/book/${book.googleBookId}`}
+                className="p-6 flex flex-col items-center text-center flex-grow"
+              >
+                <div className="flex-shrink-0">
+                  {book.imageLink && (
+                    <img
+                      src={book.imageLink}
+                      alt={`Capa do livro ${book.title}`}
+                      className="w-[120px] h-auto object-cover rounded-md shadow-md"
+                    />
+                  )}
+                </div>
+                {/* Contêiner de texto que cresce para empurrar o botão para baixo */}
+                <div className="mt-4 flex flex-col flex-grow text-center">
+                  {/* Título com truncamento forçado */}
+                  <h2 className="text-lg font-bold text-textLight dark:text-textDark line-clamp-2">
                     {book.title}
                   </h2>
-                </Link>
-                <p className="text-sm text-gray-400 mt-2">
-                  <span className="font-semibold">Autor(es):</span>{' '}
-                  {book.authors?.join(', ')}
-                </p>
-                <p className="text-sm text-gray-500 mt-2 flex-grow">
-                  {truncateText(book.description, 150)}
-                </p>
-              </div>
+                  {/* Autor com truncamento */}
+                  <p className="text-sm text-gray-500 mt-1 truncate">
+                    {book.authors?.join(', ') || 'Autor desconhecido'}
+                  </p>
+                  {/* Descrição com limite de 3 linhas */}
+                  <p className="text-xs text-gray-400 mt-2 line-clamp-3">
+                    {book.description || 'Descrição não disponível.'}
+                  </p>
+                </div>
+              </Link>
+              {isAuthenticated && (
+                <div className="p-4 flex justify-center mt-auto">
+                  <button
+                    onClick={(e) => handleAddBook(book, e)}
+                    className="w-full sm:w-auto font-semibold py-2 px-6 rounded-full text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark"
+                  >
+                    Adicionar à Biblioteca
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="p-4 bg-gray-700">
-              <button
-                onClick={() => handleAddBook(book)}
-                className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              >
-                Adicionar à Minha Biblioteca
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
