@@ -12,21 +12,23 @@ const port = process.env.PORT || 3000
 app.use(express.json())
 app.use(cors())
 
-// Rota de proxy para detalhes de um livro específico
 app.use(
-  '/google-books/:googleBookId',
+  '/api/google-books/search',
   proxy('https://www.googleapis.com', {
     proxyReqPathResolver: function (req) {
-      return `/books/v1/volumes/${req.params.googleBookId}?key=${process.env.GOOGLE_BOOKS_API_KEY}`
+      // Constrói a URL final para a API do Google
+      return `/books/v1/volumes?q=${req.query.q}&key=${process.env.GOOGLE_BOOKS_API_KEY}`
     },
   })
 )
-// Rota de proxy para a busca de livros
+
+// Nova rota de proxy para os detalhes de um livro específico
 app.use(
-  '/google-books',
+  '/api/google-books/details',
   proxy('https://www.googleapis.com', {
     proxyReqPathResolver: function (req) {
-      return `/books/v1/volumes?q=${req.query.q}&key=${process.env.GOOGLE_BOOKS_API_KEY}`
+      // Constrói a URL final para a API do Google usando o ID do livro
+      return `/books/v1/volumes/${req.query.id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`
     },
   })
 )
