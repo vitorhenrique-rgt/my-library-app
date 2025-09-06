@@ -5,113 +5,34 @@ const authMiddleware = require('../middleware/authMiddleware')
 
 const router = express.Router()
 
-// Search book on Google Book API
-router.get('/search', async (req, res) => {
+// Rota para listar os livros do usuário logado
+router.get('/', authMiddleware, async (req, res) => {
   try {
-    // Captura o termo de busca da query da URL, ex: /search?q=clean+code
-    const { q } = req.query
-
-    if (!q) {
-      return res
-        .status(400)
-        .json({ error: 'Termo de busca (q) é obrigatório.' })
-    }
-
-    const API_KEY = process.env.GOOGLE_BOOKS_API_KEY
-    const GOOGLE_BOOKS_URL = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-      q
-    )}&key=${API_KEY}`
-
-    const response = await axios.get(GOOGLE_BOOKS_URL)
-    const books = response.data.items.map((item) => ({
-      googleBookId: item.id,
-      title: item.volumeInfo.title,
-      authors: item.volumeInfo.authors,
-      description: item.volumeInfo.description,
-      imageLink: item.volumeInfo.imageLinks?.thumbnail,
-    }))
-
+    const userId = req.user.id
+    console.log('Buscando livros para o usuário:', userId)
+    const books = await Book.find({ user: userId })
+    console.log('Livros encontrados no banco de dados:', books)
     res.status(200).json(books)
   } catch (err) {
-    console.error('Erro ao buscar na API do Google Books:', err)
-    res.status(500).json({ error: 'Erro ao buscar livros.' })
+    console.error(err.message)
+    res.status(500).send('Erro no servidor')
   }
 })
 
-
-router.get('/search', authMiddleware, async (req, res) => {
-  const { googleBookId } = req.query;
+// Rota para buscar livros por googleBookId (dentro da biblioteca do usuário)
+router.get('/details', authMiddleware, async (req, res) => {
   try {
-    const books = await Book.find({ user: req.user, googleBookId });
-    res.json(books);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-//List books
-router.get('/', authMiddleware, async (req, res) => {
-  // Agora, a busca de livros será apenas para o usuário logado
-  try {
-    const books = await Book.find({ user: req.user })
-
-    // Mapear cada livro para buscar informações da API do Google Books
-    const booksWithDetails = await Promise.all(
-      books.map(async (book) => {
-        const API_KEY = process.env.GOOGLE_BOOKS_API_KEY
-        const GOOGLE_BOOKS_URL = `https://www.googleapis.com/books/v1/volumes/${book.googleBookId}?key=${API_KEY}`
-
-        try {
-          const response = await axios.get(GOOGLE_BOOKS_URL)
-          const bookDetails = response.data.volumeInfo
-
-          return {
-            _id: book._id,
-            googleBookId: book.googleBookId,
-            status: book.status,
-            title: bookDetails.title,
-            authors: bookDetails.authors,
-            imageLink: bookDetails.imageLinks?.thumbnail,
-            // Você pode adicionar outras informações aqui, como descrição
-          }
-        } catch (err) {
-          console.error(
-            `Erro ao buscar detalhes do livro ${book.googleBookId}:`,
-            err
-          )
-          // Retorna um objeto com informações limitadas em caso de erro
-          return {
-            _id: book._id,
-            googleBookId: book.googleBookId,
-            status: book.status,
-            title: 'Título não encontrado',
-            authors: ['Autor(es) não encontrado'],
-            imageLink: null,
-          }
-        }
-      })
-    )
-
-    res.status(200).json(booksWithDetails)
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
-
-//Search book for ID
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-    const book = await Book.findById(id)
-
+    const { googleBookId } = req.query
+    const book = await Book.findOne({ user: req.user.id, googleBookId })
     if (!book) {
-      return res.status(404).json({ message: 'Livro não encontrado.' })
+      return res
+        .status(404)
+        .json({ message: 'Livro não encontrado na sua biblioteca.' })
     }
-
-    res.status(200).json(book)
+    res.json(book)
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    console.error(err.message)
+    res.status(500).send('Erro no servidor')
   }
 })
 

@@ -25,6 +25,7 @@ function SearchPage() {
 
     setLoading(true)
     try {
+       console.log('Enviando requisição para:', `/google-books/search?q=${searchTerm}`); // ---TESTE---
       // Aponte para a nova rota de proxy de busca
       const response = await api.get(`/google-books/search?q=${searchTerm}`)
       const fetchedBooks = response.data.items.map((item) => ({

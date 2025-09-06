@@ -12,23 +12,30 @@ const port = process.env.PORT || 3000
 app.use(express.json())
 app.use(cors())
 
+// Rota de proxy para a busca de livros
 app.use(
   '/api/google-books/search',
   proxy('https://www.googleapis.com', {
     proxyReqPathResolver: function (req) {
-      // Constrói a URL final para a API do Google
-      return `/books/v1/volumes?q=${req.query.q}&key=${process.env.GOOGLE_BOOKS_API_KEY}`
+      // Obtém o termo de busca da requisição do frontend
+      const searchTerm = req.query.q
+      // Codifica o termo de busca para garantir que os espaços e caracteres especiais sejam tratados corretamente
+      const encodedSearchTerm = encodeURIComponent(searchTerm)
+
+      // Constrói a URL final para a API do Google usando o termo codificado
+      return (googleUrl = `/books/v1/volumes?q=${encodedSearchTerm}&key=${process.env.GOOGLE_BOOKS_API_KEY}`)
     },
   })
 )
 
 // Nova rota de proxy para os detalhes de um livro específico
+// Observe a mudança: usamos o parâmetro na URL, :googleBookId
 app.use(
-  '/api/google-books/details',
+  '/api/google-books/details/:googleBookId',
   proxy('https://www.googleapis.com', {
     proxyReqPathResolver: function (req) {
-      // Constrói a URL final para a API do Google usando o ID do livro
-      return `/books/v1/volumes/${req.query.id}?key=${process.env.GOOGLE_BOOKS_API_KEY}`
+      // Constrói a URL final para a API do Google usando o parâmetro da URL
+      return `/books/v1/volumes/${req.params.googleBookId}?key=${process.env.GOOGLE_BOOKS_API_KEY}`
     },
   })
 )

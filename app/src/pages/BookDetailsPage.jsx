@@ -12,14 +12,14 @@ function BookDetailsPage() {
   const { isAuthenticated, token } = useContext(AuthContext)
   const navigate = useNavigate()
 
-  const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY
-
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
-        // Aponte para a nova rota de proxy de detalhes
+        setLoading(true)
+
+        // 1. Busca os detalhes do livro na API do Google (via proxy)
         const googleResponse = await api.get(
-          `/google-books/details?id=${googleBookId}`
+          `/google-books/details/${googleBookId}`
         )
         const bookData = googleResponse.data
         const fetchedBook = {
@@ -31,57 +31,62 @@ function BookDetailsPage() {
         }
         setBook(fetchedBook)
 
+        // 2. Se o usuário está autenticado, busca o livro na sua biblioteca
         if (isAuthenticated) {
           const myLibraryResponse = await api.get(
-            `http://localhost:3000/api/books/search?googleBookId=${googleBookId}`
+            `/books?googleBookId=${googleBookId}`
           )
+
           if (myLibraryResponse.data.length > 0) {
+            // Encontrou o livro na sua biblioteca
             setUserBook(myLibraryResponse.data[0])
+          } else {
+            // Não encontrou, o livro não está na biblioteca
+            setUserBook(null)
           }
         }
       } catch (error) {
-        console.error('Erro ao buscar detalhes do livro:', error)
+        console.error(
+          'Erro ao buscar detalhes do livro ou da biblioteca:',
+          error
+        )
       } finally {
         setLoading(false)
       }
     }
+
     fetchBookDetails()
   }, [googleBookId, isAuthenticated, token])
 
-  
   const handleUpdateStatus = async (newStatus) => {
+    // Verifica se o livro já foi adicionado antes de tentar atualizar
+    if (!userBook) {
+      alert('Este livro ainda não foi adicionado à sua biblioteca.')
+      return
+    }
     try {
-      if (!userBook) {
-        const response = await api.post('http://localhost:3000/api/books', {
-          googleBookId: book.googleBookId,
-          status: newStatus,
-        })
-        setUserBook(response.data)
-      } else {
-        await api.put(`http://localhost:3000/api/books/${userBook._id}`, {
-          status: newStatus,
-        })
-        setUserBook((prevUserBook) => ({ ...prevUserBook, status: newStatus }))
-      }
+      await api.put(`/books/${userBook._id}`, { status: newStatus })
+      setUserBook((prev) => ({ ...prev, status: newStatus }))
+      alert('Status do livro atualizado com sucesso!')
     } catch (error) {
-      console.error('Erro ao atualizar o status:', error)
+      console.error('Erro ao atualizar status:', error)
+      alert('Erro ao atualizar o status do livro.')
     }
   }
 
   const handleDeleteBook = async () => {
-    if (!userBook) return
-    if (
-      window.confirm(
-        'Tem certeza que deseja remover este livro da sua biblioteca?'
-      )
-    ) {
-      try {
-        await api.delete(`http://localhost:3000/api/books/${userBook._id}`)
-        setUserBook(null)
-        alert('Livro removido com sucesso!')
-      } catch (error) {
-        console.error('Erro ao remover o livro:', error)
-      }
+    // Verifica se o livro existe para ser removido
+    if (!userBook) {
+      alert('Este livro não está na sua biblioteca.')
+      return
+    }
+    try {
+      await api.delete(`/books/${userBook._id}`)
+      setUserBook(null) // Define o estado do livro do usuário para null
+      alert('Livro removido da sua biblioteca.')
+    } catch (error) {
+      console.error('Erro ao remover livro:', error)
+      alert('Erro ao remover o livro da sua biblioteca.')
     }
   }
 
@@ -153,26 +158,35 @@ function BookDetailsPage() {
             />
           </div>
 
-          {isAuthenticated && (
+          {isAuthenticated && book && (
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => handleUpdateStatus('reading')}
-                className={`flex-grow font-semibold py-3 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${userBook?.status === 'reading' ? 'bg-primary text-white focus:ring-primary focus:ring-offset-cardLight dark:focus:ring-offset-cardDark' : 'bg-transparent text-primary border-2 border-primary hover:bg-primary hover:text-white focus:ring-primary focus:ring-offset-cardLight dark:focus:ring-offset-cardDark'}`}
-              >
-                Marcar como Lendo
-              </button>
-              <button
-                onClick={() => handleUpdateStatus('read')}
-                className={`flex-grow font-semibold py-3 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${userBook?.status === 'read' ? 'bg-green-600 text-white focus:ring-green-600 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark' : 'bg-transparent text-green-600 border-2 border-green-600 hover:bg-green-600 hover:text-white focus:ring-green-600 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark'}`}
-              >
-                Marcar como Lido
-              </button>
-              {userBook && (
+              {userBook ? (
+                <>
+                  <button
+                    onClick={() => handleUpdateStatus('reading')}
+                    className={`flex-grow font-semibold py-3 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${userBook.status === 'reading' ? 'bg-primary text-white focus:ring-primary focus:ring-offset-cardLight dark:focus:ring-offset-cardDark' : 'bg-transparent text-primary border-2 border-primary hover:bg-primary hover:text-white focus:ring-primary focus:ring-offset-cardLight dark:focus:ring-offset-cardDark'}`}
+                  >
+                    Marcar como Lendo
+                  </button>
+                  <button
+                    onClick={() => handleUpdateStatus('read')}
+                    className={`flex-grow font-semibold py-3 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${userBook.status === 'read' ? 'bg-green-600 text-white focus:ring-green-600 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark' : 'bg-transparent text-green-600 border-2 border-green-600 hover:bg-green-600 hover:text-white focus:ring-green-600 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark'}`}
+                  >
+                    Marcar como Lido
+                  </button>
+                  <button
+                    onClick={handleDeleteBook}
+                    className="flex-grow bg-transparent text-danger border-2 border-danger font-semibold py-3 rounded-full hover:bg-danger hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark"
+                  >
+                    Remover
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={handleDeleteBook}
-                  className="flex-grow bg-transparent text-danger border-2 border-danger font-semibold py-3 rounded-full hover:bg-danger hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark"
+                  onClick={() => handleAddBook(book)}
+                  className="w-full sm:w-auto font-semibold py-2 px-6 rounded-full text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-cardLight dark:focus:ring-offset-cardDark"
                 >
-                  Remover
+                  Adicionar à Biblioteca
                 </button>
               )}
             </div>

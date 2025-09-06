@@ -1,38 +1,30 @@
 import { useContext, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
-import { ThemeContext } from '../context/ThemeContext'
 import api from '../services/api'
 
 function MyLibraryPage() {
-  const [myBooks, setMyBooks] = useState([])
+  const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const { isAuthenticated, token } = useContext(AuthContext)
-  const { theme } = useContext(ThemeContext)
-  const navigate = useNavigate()
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/auth')
-      return
-    }
-
-    const fetchMyBooks = async () => {
+    const fetchBooks = async () => {
+      if (!isAuthenticated) return
       try {
-        const response = await api.get('http://localhost:3000/api/books')
-        setMyBooks(response.data)
-        setLoading(false)
+        const response = await api.get('/books')
+        // A resposta agora é apenas os livros da biblioteca do usuário
+        console.log('Resposta da API para /books:', response.data);
+        const userBooks = response.data
+        setBooks(userBooks)
       } catch (error) {
-        console.error(
-          'Erro ao buscar a sua biblioteca:',
-          error.response?.data?.error || error.message
-        )
+        console.error('Erro ao buscar livros:', error)
+      } finally {
         setLoading(false)
       }
     }
-
-    fetchMyBooks()
-  }, [isAuthenticated, navigate, token])
+    fetchBooks()
+  }, [isAuthenticated, token])
 
   const getStatusText = (status) => {
     switch (status) {
@@ -75,47 +67,35 @@ function MyLibraryPage() {
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {myBooks.length === 0 ? (
-          <p className="text-lg text-gray-500 col-span-full text-center">
-            Você ainda não adicionou nenhum livro à sua biblioteca.
-          </p>
-        ) : (
-          myBooks.map((book) => (
+        {books.length > 0 ? (
+          books.map((book) => (
             <Link
               key={book._id}
               to={`/book/${book.googleBookId}`}
-              className="bg-cardLight dark:bg-cardDark rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden flex flex-col"
+              className="group relative"
             >
-              <div className="p-6 flex flex-col items-center text-center">
-                <div className="flex-shrink-0">
-                  {book.imageLink && (
-                    <img
-                      src={book.imageLink}
-                      alt={`Capa do livro ${book.title}`}
-                      className="w-[120px] h-auto object-cover rounded-md shadow-md"
-                    />
-                  )}
-                </div>
-                <div className="mt-4 flex-grow">
-                  <h2 className="text-lg font-bold text-textLight dark:text-textDark truncate">
-                    {book.title}
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {getStatusText(book.status)}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-auto p-2">
-                <span
-                  className={`inline-block px-4 py-1 text-sm font-semibold rounded-full text-white ${getStatusColor(
-                    book.status
-                  )}`}
-                >
-                  {getStatusText(book.status)}
-                </span>
+              <div className="bg-cardLight dark:bg-cardDark rounded-xl p-4 shadow-lg transition-transform transform hover:scale-105 duration-200 cursor-pointer">
+                {book.imageLink && (
+                  <img
+                    src={book.imageLink}
+                    alt={`Capa do livro ${book.title}`}
+                    className="w-full h-auto object-cover rounded-md mb-4"
+                  />
+                )}
+                <h3 className="text-lg font-bold truncate">{book.title}</h3>
+                <p className="text-gray-500 text-sm truncate">
+                  {book.authors?.join(', ')}
+                </p>
+                <p className="text-primary mt-2 font-semibold">
+                  Status: {book.status}
+                </p>
               </div>
             </Link>
           ))
+        ) : (
+          <p className="col-span-full text-center text-textLight dark:text-textDark">
+            Você ainda não adicionou nenhum livro à sua biblioteca.
+          </p>
         )}
       </div>
     </div>

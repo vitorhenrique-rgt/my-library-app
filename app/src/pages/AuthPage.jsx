@@ -22,6 +22,7 @@ function AuthPage() {
       const response = await api.post(url, { username, password })
 
       if (isLogin) {
+        localStorage.setItem('token', response.data.token);
         login(response.data.token, response.data.userId)
         navigate('/')
       } else {
