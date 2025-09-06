@@ -17,7 +17,7 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/" element={<SearchPage />} />
         <Route path="/my-library" element={<MyLibraryPage />} />
-        <Route path="/book/:googleBookId" element={<BookDetailsPage />} />
+        <Route path="/book/:id" element={<BookDetailsPage />} />
       </Routes>
     </div>
   )

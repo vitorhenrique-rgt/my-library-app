@@ -6,73 +6,80 @@ import api from '../services/api'
 function MyLibraryPage() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
-  const { isAuthenticated, token } = useContext(AuthContext)
+  const { isAuthenticated } = useContext(AuthContext)
 
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchMyBooks = async () => {
       if (!isAuthenticated) return
+
       try {
         const response = await api.get('/books')
-        // A resposta agora é apenas os livros da biblioteca do usuário
-        console.log('Resposta da API para /books:', response.data);
-        const userBooks = response.data
-        setBooks(userBooks)
+        const myBooks = response.data
+
+        // Mapeia os livros da sua biblioteca para buscar os detalhes da API do Google
+        const booksWithDetails = await Promise.all(
+          myBooks.map(async (book) => {
+            try {
+              // Busca os detalhes do livro na API do Google usando o proxy
+              const googleResponse = await api.get(
+                `/google-books/details/${book.googleBookId}`
+              )
+              const googleBook = googleResponse.data
+
+              return {
+                ...book,
+                title: googleBook.volumeInfo.title,
+                authors: googleBook.volumeInfo.authors,
+                imageLink: googleBook.volumeInfo.imageLinks?.thumbnail || '',
+              }
+            } catch (googleError) {
+              console.error(
+                `Erro ao buscar detalhes do livro ${book.googleBookId}:`,
+                googleError
+              )
+              return {
+                ...book,
+                title: 'Título não disponível',
+                authors: ['Autor(es) não disponível'],
+                imageLink: '',
+              }
+            }
+          })
+        )
+
+        setBooks(booksWithDetails)
       } catch (error) {
-        console.error('Erro ao buscar livros:', error)
+        console.error('Erro ao buscar livros da sua biblioteca:', error)
       } finally {
         setLoading(false)
       }
     }
-    fetchBooks()
-  }, [isAuthenticated, token])
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'want-to-read':
-        return 'Quero Ler'
-      case 'reading':
-        return 'Lendo'
-      case 'read':
-        return 'Lido'
-      default:
-        return status
-    }
-  }
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'want-to-read':
-        return 'bg-gray-500'
-      case 'reading':
-        return 'bg-primary'
-      case 'read':
-        return 'bg-green-600'
-      default:
-        return 'bg-gray-500'
-    }
-  }
+    fetchMyBooks()
+  }, [isAuthenticated])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen text-lg text-textLight dark:text-textDark">
-        <p>Carregando sua biblioteca...</p>
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl text-textLight dark:text-textDark">
+          Carregando...
+        </p>
       </div>
     )
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl md:text-5xl font-extrabold text-textLight dark:text-textDark tracking-tight text-center mb-10">
+      <h2 className="text-3xl font-bold text-center mb-8 text-textLight dark:text-textDark">
         Minha Biblioteca
-      </h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {books.length > 0 ? (
-          books.map((book) => (
+      </h2>
+      {books.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {books.map((book) => (
             <Link
               key={book._id}
-              to={`/book/${book.googleBookId}`}
-              className="group relative"
+              to={`/book/${book._id}`}
+              className="group relative block"
             >
               <div className="bg-cardLight dark:bg-cardDark rounded-xl p-4 shadow-lg transition-transform transform hover:scale-105 duration-200 cursor-pointer">
                 {book.imageLink && (
@@ -82,22 +89,31 @@ function MyLibraryPage() {
                     className="w-full h-auto object-cover rounded-md mb-4"
                   />
                 )}
-                <h3 className="text-lg font-bold truncate">{book.title}</h3>
+                <h3 className="text-lg font-bold truncate text-textLight dark:text-textDark">
+                  {book.title}
+                </h3>
                 <p className="text-gray-500 text-sm truncate">
                   {book.authors?.join(', ')}
                 </p>
-                <p className="text-primary mt-2 font-semibold">
-                  Status: {book.status}
+                <p
+                  className="mt-2 font-semibold"
+                  style={{
+                    color: book.status === 'read' ? '#10B981' : '#F59E0B',
+                  }}
+                >
+                  Status: {book.status === 'read' ? 'Lido' : 'Lendo'}
                 </p>
               </div>
             </Link>
-          ))
-        ) : (
-          <p className="col-span-full text-center text-textLight dark:text-textDark">
+          ))}
+        </div>
+      ) : (
+        <div className="text-center mt-20">
+          <p className="text-xl text-textLight dark:text-textDark">
             Você ainda não adicionou nenhum livro à sua biblioteca.
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
