@@ -18,6 +18,12 @@ const bookSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    notes: [
+      {
+        text: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 )
