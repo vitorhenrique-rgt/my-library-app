@@ -4,8 +4,7 @@ const Book = require('../models/Book')
 const authMiddleware = require('../middleware/authMiddleware')
 
 const router = express.Router()
-
-// Rota para listar todos os livros do usuário logado
+o
 // GET /api/books
 router.get('/', authMiddleware, async (req, res) => {
   try {
@@ -18,12 +17,10 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 })
 
-// Rota para adicionar um novo livro à biblioteca do usuário
 // POST /api/books
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { googleBookId, status } = req.body
-    // O middleware 'authMiddleware' já injetou 'req.user' na requisição
     const book = new Book({ googleBookId, status, user: req.user.id })
     await book.save()
     res.status(201).json(book)
@@ -33,7 +30,6 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 })
 
-// Rota para buscar um livro específico na biblioteca do usuário pelo googleBookId
 // GET /api/books/:googleBookId
 router.get('/:googleBookId', authMiddleware, async (req, res) => {
   try {
@@ -53,7 +49,6 @@ router.get('/:googleBookId', authMiddleware, async (req, res) => {
   }
 })
 
-// Rota para atualizar o status de um livro
 // PUT /api/books/:id
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
@@ -77,7 +72,6 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 })
 
-// Rota para deletar um livro da biblioteca
 // DELETE /api/books/:id
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {

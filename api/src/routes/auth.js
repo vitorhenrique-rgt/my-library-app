@@ -5,7 +5,7 @@ const User = require('../models/User')
 
 const router = express.Router()
 
-// Rota de Registro
+// new user
 router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body
@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
   }
 })
 
-// Rota de Login
+// login
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body
