@@ -8,7 +8,10 @@ const router = express.Router()
 router.post('/:bookId/notes', authMiddleware, async (req, res) => {
   try {
     const { text } = req.body
-    const book = await Book.findOne({ _id: req.params.bookId, user: req.user.id })
+    const book = await Book.findOne({
+      _id: req.params.bookId,
+      user: req.user.id,
+    })
     if (!book) return res.status(404).json({ error: 'Livro não encontrado' })
 
     book.notes.push({ text })
@@ -22,7 +25,10 @@ router.post('/:bookId/notes', authMiddleware, async (req, res) => {
 // list note of the books
 router.get('/:bookId/notes', authMiddleware, async (req, res) => {
   try {
-    const book = await Book.findOne({ _id: req.params.bookId, user: req.user.id })
+    const book = await Book.findOne({
+      _id: req.params.bookId,
+      user: req.user.id,
+    })
     if (!book) return res.status(404).json({ error: 'Livro não encontrado' })
 
     res.status(200).json(book.notes)
@@ -34,10 +40,13 @@ router.get('/:bookId/notes', authMiddleware, async (req, res) => {
 // delete note of the book
 router.delete('/:bookId/notes/:noteId', authMiddleware, async (req, res) => {
   try {
-    const book = await Book.findOne({ _id: req.params.bookId, user: req.user.id })
+    const book = await Book.findOne({
+      _id: req.params.bookId,
+      user: req.user.id,
+    })
     if (!book) return res.status(404).json({ error: 'Livro não encontrado' })
 
-    book.notes.id(req.params.noteId).remove()
+    book.notes.pull({ _id: req.params.noteId })
     await book.save()
     res.status(200).json(book.notes)
   } catch (err) {
