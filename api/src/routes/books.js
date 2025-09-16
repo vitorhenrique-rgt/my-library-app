@@ -4,7 +4,6 @@ const Book = require('../models/Book')
 const authMiddleware = require('../middleware/authMiddleware')
 
 const router = express.Router()
-o
 // GET /api/books
 router.get('/', authMiddleware, async (req, res) => {
   try {
